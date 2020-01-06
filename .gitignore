@@ -1,4 +1,13 @@
+*.Rproj.user
+*.Rproj
+*.txt
+/private
+*.Rhistory
+*.Rdata
+*.pdf
+*.html/
+*_files/
+*_cache
 .Rproj.user
-.Rhistory
 .RData
-.Ruserdata
+*.html
