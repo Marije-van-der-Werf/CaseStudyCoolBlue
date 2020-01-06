@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1578305674832.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "61E39B1",
+    "lastKnownWriteTime" : 1578305750,
+    "last_content_update" : 1578305750,
+    "path" : "~/GitHub/CaseStudyCoolBlue/Test.R",
+    "project_path" : "Test.R",
+    "properties" : {
+        "cursorPosition" : "0,3",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
