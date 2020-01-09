@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 C:/Users/User/Documents/GitHub/CaseStudyCoolBlue/.gitignore="CEF37B99"
 C:/Users/User/Documents/GitHub/CaseStudyCoolBlue/README.md="19B0B339"
 C:/Users/User/Documents/GitHub/CaseStudyCoolBlue/Test.R="E1166195"
@@ -8,3 +9,7 @@ C:/Users/User/Documents/GitHub/stappenplan/README.md="1D96B65"
 C:/Users/User/Documents/R/SVB/CI-308_Outliers_in_betalingen_aan_klanten/.gitignore="9AE53D23"
 C:/Users/User/Documents/R/SVB/controle_volledigheid_belastingafdrachten/.gitignore="E70F2C24"
 C:/Users/User/Documents/R/SVB/dpgb_rechtmatigheid/.gitignore="641210A4"
+=======
+/Users/rutger/Documents/GitHub/CaseStudyCoolBlue/README.md="80232AEF"
+/Users/rutger/Documents/GitHub/CaseStudyCoolBlue/test.R="C8E78883"
+>>>>>>> 0649157c841f83b5aa8ee2ae2032c1fde2a63fda
