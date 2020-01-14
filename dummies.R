@@ -1,4 +1,9 @@
+###############################################################################
+# Script voor dummies toevoegen
+###############################################################################
+
 library(lubridate)
+source("data_inlezen.R")
 s = dim(OtherMarketingNL)
 
 WeekdayDummy = as.data.frame(matrix(0, nrow = s[1], ncol = 7))
