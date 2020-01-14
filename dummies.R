@@ -117,4 +117,6 @@ for (i in 1:s[1]){
     }
 }
 
-
+#' Dummy voor retailer in Competitor dataframe
+Competitor <- Competitor %>% 
+    mutate(Retailer = ifelse(brand %in% c("ALIEXPRESS", "ALTERNATE", "AMAZON", "AMAZON", "AMAZON MUSIC", "AO.NL", "BAX MUSIC", "BCC", "BLOKKER", "BOL.COM", "EXPERT", "FONQ.NL", "KREFEL", "MEDIA MARKT", "MEDIAMARKT", "VANDEN BORRE", "WEHKAMP.NL"), 1, 0))
