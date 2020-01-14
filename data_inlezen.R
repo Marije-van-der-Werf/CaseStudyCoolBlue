@@ -5,6 +5,8 @@
 #' Data and libraries
 library(dplyr)
 library(magrittr)
+library(lubridate)
+library(tidyr)
 
 Competitor <- read.csv("Competitor Data - TV.csv", sep = ",", header = TRUE) %>% 
     mutate(date = as.Date(date))
@@ -50,3 +52,12 @@ Sales2093 <- Sales %>%
 Social2093 <- Social %>% 
     filter(product_type_id == 2093)
 
+#' Nederland data
+DisplayNL <- Display2093 %>% 
+    filter(subsidiary_id == 1)
+OtherMarketingNL <- OtherMarketing2093 %>% 
+    filter(key %in% c("2093_11"))
+SalesNL <- Sales2093 %>% 
+    filter(subsidiary_id == 1)
+SocialNL <- Social2093 %>% 
+    filter(subsidiaryid == 1)
