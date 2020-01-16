@@ -127,7 +127,7 @@ Competitor <- Competitor %>%
     mutate(Retailer = ifelse(brand %in% c("ALIEXPRESS", "ALTERNATE", "AMAZON", "AMAZON", "AMAZON MUSIC", "AO.NL", "BAX MUSIC", "BCC", "BLOKKER", "BOL.COM", "EXPERT", "FONQ.NL", "KREFEL", "MEDIA MARKT", "MEDIAMARKT", "VANDEN BORRE", "WEHKAMP.NL"), 1, 0))
 
 #' Dummy voor feestdagen/acties gekoppeld aan datums
-FeestdagenNL <- SalesNL %>% 
+Feestdagen <- SalesNL %>% 
     select(date) %>% 
     mutate(BlackFriday = ifelse(date == "2017-11-23", 1, 0), # 2017 en 2018 donderdag tm maandag, 2019 maandag tm maandag
            BlackFriday = ifelse(date == "2017-11-24", 1, BlackFriday),
@@ -215,4 +215,18 @@ FeestdagenNL <- SalesNL %>%
            OudEnNieuw = ifelse(date == "2018-12-31", 1, OudEnNieuw),
            OudEnNieuw = ifelse(date == "2019-01-01", 1, OudEnNieuw),
            OudEnNieuw = ifelse(date == "2019-12-31", 1, OudEnNieuw),
-           OudEnNieuw = ifelse(date == "2020-01-01", 1, OudEnNieuw))
+           OudEnNieuw = ifelse(date == "2020-01-01", 1, OudEnNieuw),
+           WinterSolden = ifelse(date == "2017-01-03", 1, 0), # Wintersolden is vanaf 3 januari tm 31 januari, alleen eerste twee dagen meer sales
+           WinterSolden = ifelse(date == "2017-01-04", 1, WinterSolden),
+           WinterSolden = ifelse(date == "2018-01-03", 1, WinterSolden),
+           WinterSolden = ifelse(date == "2018-01-04", 1, WinterSolden),
+           WinterSolden = ifelse(date == "2019-01-03", 1, WinterSolden),
+           WinterSolden = ifelse(date == "2019-01-04", 1, WinterSolden))
+
+FeestdagenNL <- Feestdagen %>% 
+    select(date, BlackFriday, iPhoneLaunch, KerstCadeaus, ChristelijkeFeestdag, Koningsdag, OudEnNieuw)
+
+FeestdagenBE <- Feestdagen %>%
+    select(date, BlackFriday, KerstCadeaus, ChristelijkeFeestdag, OudEnNieuw, WinterSolden)
+
+rm(Feestdagen)
