@@ -1,7 +1,8 @@
 library(lubridate)
 library(dplyr)
-#source("data_inlezen.R")
-#source("dummies.R")
+library(mice)
+# source("data_inlezen.R")
+# source("dummies.R")
 
 #'We start with the data for NL only
 
@@ -105,7 +106,24 @@ CompetitorNL <- CompetitorNL %>%
     group_by(date) %>% 
     summarise_all(sum)
 
-modelData <- left_join(modelData, CompetitorNL, by = "date")
+datums <- SalesNL %>% 
+    select(date)
+
+CompetitorNA <- datums %>% 
+    left_join(CompetitorNL, by = "date")
+
+set.seed(6)
+ExtrapolerenRetailer <- mice(CompetitorNA %>% select(date, GRPRetailer), m = 1, method = "pmm", maxit = 1)
+CompletedDataRetailer <- complete(ExtrapolerenRetailer, 1)
+
+set.seed(12)
+ExtrapolerenNoRetailer <- mice(CompetitorNA %>% select(date, GRPNoRetailer), m = 1, method = "pmm", maxit = 1)
+CompletedDataNoRetailer <- complete(ExtrapolerenNoRetailer, 1)
+
+CompetitorExtrapolated <- CompletedDataRetailer %>% 
+    left_join(CompletedDataNoRetailer, by = "date")
+
+modelData <- left_join(modelData, CompetitorExtrapolated, by = "date")
 
 KNMI_data <- read.table("etmgeg_260.txt", header = TRUE, sep = ",", dec = ".")
 
