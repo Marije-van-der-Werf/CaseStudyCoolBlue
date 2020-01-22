@@ -123,8 +123,9 @@ for (i in 1:s[1]){
 }
 
 #' Dummy voor retailer in Competitor dataframe
-Competitor <- Competitor %>% 
-    mutate(Retailer = ifelse(brand %in% c("ALIEXPRESS", "ALTERNATE", "AMAZON", "AMAZON", "AMAZON MUSIC", "AO.NL", "BAX MUSIC", "BCC", "BLOKKER", "BOL.COM", "EXPERT", "FONQ.NL", "KREFEL", "MEDIA MARKT", "MEDIAMARKT", "VANDEN BORRE", "WEHKAMP.NL"), 1, 0))
+#' Staat nu in create_modeldata
+# Competitor <- Competitor %>% 
+#     mutate(Retailer = ifelse(brand %in% c("ALIEXPRESS", "ALTERNATE", "AMAZON", "AMAZON", "AMAZON MUSIC", "AO.NL", "BAX MUSIC", "BCC", "BLOKKER", "BOL.COM", "EXPERT", "FONQ.NL", "KREFEL", "MEDIA MARKT", "MEDIAMARKT", "VANDEN BORRE", "WEHKAMP.NL"), 1, 0))
 
 #' Dummy voor feestdagen/acties gekoppeld aan datums
 Feestdagen <- SalesNL %>% 
@@ -163,7 +164,22 @@ Feestdagen <- SalesNL %>%
            iPhoneLaunch = ifelse(date == "2019-09-18", 1, iPhoneLaunch),
            iPhoneLaunch = ifelse(date == "2019-09-19", 1, iPhoneLaunch),
            iPhoneLaunch = ifelse(date == "2019-09-20", 1, iPhoneLaunch),
-           # BTWdeals = ifelse(date == "", 1, 0) # weten nog niet zeker of dit echt BTWdeals zijn en wanneer die precies zijn
+           BTWdeals = ifelse(date == "2017-01-25", 1, 0), # de datums corresponderen met de BTW-weg-ermee-actie van de MediaMarkt
+           BTWdeals = ifelse(date == "2017-01-26", 1, BTWdeals),
+           BTWdeals = ifelse(date == "2017-01-27", 1, BTWdeals),
+           BTWdeals = ifelse(date == "2017-01-28", 1, BTWdeals),
+           BTWdeals = ifelse(date == "2017-01-29", 1, BTWdeals),
+           BTWdeals = ifelse(date == "2018-01-25", 1, BTWdeals),
+           BTWdeals = ifelse(date == "2018-01-26", 1, BTWdeals),
+           BTWdeals = ifelse(date == "2018-01-27", 1, BTWdeals),
+           BTWdeals = ifelse(date == "2018-01-28", 1, BTWdeals),
+           BTWdeals = ifelse(date == "2019-01-21", 1, BTWdeals),
+           BTWdeals = ifelse(date == "2019-01-22", 1, BTWdeals),
+           BTWdeals = ifelse(date == "2019-01-23", 1, BTWdeals),
+           BTWdeals = ifelse(date == "2019-01-24", 1, BTWdeals),
+           BTWdeals = ifelse(date == "2019-01-25", 1, BTWdeals),
+           BTWdeals = ifelse(date == "2019-01-26", 1, BTWdeals),
+           BTWdeals = ifelse(date == "2019-01-27", 1, BTWdeals),
            KerstCadeaus = ifelse(date == "2017-12-16", 1, 0), # Kerstinkopen doen (16 tm 23 december)
            KerstCadeaus = ifelse(date == "2017-12-17", 1, KerstCadeaus),
            KerstCadeaus = ifelse(date == "2017-12-18", 1, KerstCadeaus),
@@ -224,7 +240,7 @@ Feestdagen <- SalesNL %>%
            WinterSolden = ifelse(date == "2019-01-04", 1, WinterSolden))
 
 FeestdagenNL <- Feestdagen %>% 
-    select(date, BlackFriday, iPhoneLaunch, KerstCadeaus, ChristelijkeFeestdag, Koningsdag, OudEnNieuw)
+    select(date, BlackFriday, iPhoneLaunch, BTWdeals, KerstCadeaus, ChristelijkeFeestdag, Koningsdag, OudEnNieuw)
 
 FeestdagenBE <- Feestdagen %>%
     select(date, BlackFriday, KerstCadeaus, ChristelijkeFeestdag, OudEnNieuw, WinterSolden)
