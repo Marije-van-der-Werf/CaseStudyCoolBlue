@@ -1,25 +1,34 @@
 library(dplyr)
 library(lubridate)
+library(ggplot2)
+library(robustHD)
+library(corpcor)
 
 source("data_inlezen.R")
 source("dummies.R")
 source("create_modeldata_table.R")
 
 
+#modelDataMarije <- modelData %>%
+#filter(date <= "2019-11-03")
+
+
+#y <- modelDataMarije$sales
+#constant <- rep(1,1037)
+#x <- modelDataMarije[,c(3:55)]
+#D <- modelDataMarije[, c(56:82)]
+
 y <- modelData$sales
-constant <- rep(1,1100)
-x <- modelData[,c(3:27)]
-D <- modelData[, c(1,29:47)]
+constant <- rep(1, 1100)
+x <- modelData[,c(3:32)] ## alle x'en
+D <- modelData[, c(33:59)] ## alle dummies
 D <- cbind(constant, D)
-D <- D %>% 
-    left_join(FeestdagenNL, by = "date")
-
-
-
 
 x <- data.matrix(x)
 D <- data.matrix(D)
 
+adX <- x[,c(1:22, 25:27)] ##Hier alle x'en die in de adstock gaan
+noAdX <- x[, c(23, 24, 28:30)] ## Hier alle x'en die niet in de adstock gaan
 
 #Frisch Waugh
 
@@ -30,6 +39,12 @@ D <- data.matrix(D)
 # fwl ols
 #coef(lm(eta ~ -1 + u))
 
+#Test <- modelDataMarije %>% 
+#   select(date) %>% 
+#  arrange(date) %>% 
+#mutate(n = 1:1037)
+#Trend <- data.matrix(Test)
+
 Test <- modelData %>% 
     select(date) %>% 
     arrange(date) %>% 
@@ -37,28 +52,61 @@ Test <- modelData %>%
 Trend <- data.matrix(Test)
 
 ##Adstock
-adstock <- matrix(, nrow = 1100, ncol = 25)
+dimX <- dim(adX)
+adstock <- matrix(NA, nrow = dimX[1], ncol = dimX[2])
 lambda <- 0.85
-for(j in 1:25){
+for(j in 1:(dimX[2])){
     
     
-    adstock[1,j] = x[1,j]
-    for(i in 2:1100)
+    adstock[1,j] = adX[1,j]
+    for(i in 2:dimX[1])
     {
-        adstock[i,j] = x[i,j] + lambda * adstock[i-1,j]
+        adstock[i,j] = log(1+adX[i,j]) + lambda * adstock[i-1,j]
     }
 }
 
 adstock <- data.matrix(adstock)
+colnames(adstock) <- colnames(adX)
 
+st_x <- standardize(log(1+noAdX), centerFun = mean, scaleFun = sd)
+st_ad <- standardize(adstock, centerFun = mean, scaleFun = sd)
 
 ##model
 trend <- Trend/365
-ols <- lm(log(y) ~ -1 + trend[,2] + D[,-c(2)] + log(1+adstock))
-resi <- residuals(lm(log(y) ~ -1 + Trend[,2] + D + log(1+adstock)))
+ols <- lm(log(y) ~ -1 + trend[,2] + D + st_ad + st_x)
+summary(ols)
+resi <- residuals(ols)
 resi <- data.matrix(resi)
 
 t <- ggplot(modelData, aes(x = date))
 t <- t + geom_line(aes(y = resi, colour = "Residuals"))
 t
 
+#model trend + dummies
+ols2 <- lm(log(y) ~ -1 + trend[,2] + D)
+summary(ols2)
+resi2 <- residuals(ols2)
+t2 <- ggplot(modelData, aes(x=date))
+t2 <- t2 + geom_line(aes(y=resi2, colour = "Residuals"))
+t2
+
+
+#Model alleen trend (+ constante)
+ols3 <- lm(log(y) ~ trend[,2])
+summary(ols3)
+resi3 <- residuals(ols3)
+resi3 <- data.matrix(resi3)
+
+t3 <- ggplot(modelData, aes(x = date))
+t3 <- t3 + geom_line(aes(y = resi3, colour = "Residuals"))
+t3
+
+#Model alleen dummies
+ols4 <- lm(log(y) ~ D)
+summary(ols4)
+resi4 <- residuals(ols4)
+resi4 <- data.matrix(resi4)
+
+t4 <- ggplot(modelData, aes(x = date))
+t4 <- t4 + geom_line(aes(y = resi4, colour = "Residuals"))
+t4
