@@ -46,7 +46,7 @@ OtherMarketing <- OtherMarketing %>%
 Display2093 <- Display %>% 
     filter(product_type_id == 2093)
 OtherMarketing2093 <- OtherMarketing %>% 
-    filter(key %in% c("2093_11", "2093_31"))
+    filter(key %in% c("2093_11", "2093_12", "2093_31", "2093_32", "2093_34"))
 Sales2093 <- Sales %>% 
     filter(product_type_id == 2093)
 Social2093 <- Social %>% 
@@ -61,3 +61,21 @@ SalesNL <- Sales2093 %>%
     filter(subsidiary_id == 1)
 SocialNL <- Social2093 %>% 
     filter(subsidiaryid == 1)
+
+
+#' Belgie data
+DisplayBE <- Display2093 %>%
+    filter(subsidiary_id == 3)
+OtherMarketingBE <- OtherMarketing2093 %>%
+    filter(key %in% c("2093_31", "2093_32", "2093_34"))
+SalesBE <- Sales2093 %>% 
+    filter(subsidiary_id == 3)
+SocialBE<- Social2093 %>% 
+    filter(subsidiaryid == 3)
+
+
+#' Frans talige data
+DisplayBEFR <- DisplayBE %>%
+    filter(language_id == 4)
+SocialBEFR <- SocialBE %>% 
+    filter(language_id == 4)
