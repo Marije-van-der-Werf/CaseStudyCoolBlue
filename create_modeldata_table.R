@@ -43,7 +43,7 @@ display_cost_perday <- display_cost_perday %>%
 
 sales_perday <- SalesNL[order(SalesNL$date), c("date", "sales")]
 
-#' Update Model data: add display costs and sales  
+#' Update modeldata: add display costs and sales  
 modelData <- left_join(sales_perday,display_cost_perday, by = "date")
 
 #'We take the total social costs on one day
@@ -81,10 +81,10 @@ social_cost_perday <- social_cost_perday %>%
            Facebook = Facebook / 4,
            FacebookAndInstagram = FacebookAndInstagram / 4)
 
-#' Update Model data: add social costs
+#' Update modeldata: add social costs
 modelData <- left_join(modelData,social_cost_perday, by = "date")
 
-#' Update Model data: add search_ads costs and shopping_ads costs
+#' Update modeldata: add search_ads costs and shopping_ads costs
 adspervolume <- OtherMarketingNL$searchads_cost / OtherMarketingNL$search_volume
 shoppingpervolume <- OtherMarketingNL$shoppingads_cost / OtherMarketingNL$search_volume
 googleCosts <- data.frame(matrix(0,nrow(OtherMarketingNL),3))
@@ -96,7 +96,7 @@ modelData <- left_join(modelData, googleCosts, by = "date")
 
 modelData <- left_join(modelData,OtherMarketingNL[,c("date", "delivered_emails")], by = "date")
 
-#' Add Competitor Data
+#' Update modeldata: add extrapolated competitor data
 CompetitorNL <- Competitor %>% 
     filter(country == "Netherlands") %>% 
     mutate(Retailer = ifelse(brand %in% c("ALIEXPRESS", "ALTERNATE", "AMAZON", "AMAZON", "AMAZON MUSIC", "AO.NL", "BAX MUSIC", "BCC", "BLOKKER", "BOL.COM", "EXPERT", "FONQ.NL", "KREFEL", "MEDIA MARKT", "MEDIAMARKT", "VANDEN BORRE", "WEHKAMP.NL"), 1, 0),
@@ -133,10 +133,10 @@ modelData <- left_join(modelData, CompetitorExtrapolated, by = "date")
 KNMI_data <- read.table("etmgeg_260.txt", header = TRUE, sep = ",", dec = ".")
 
 #' Put dates from integer to date format and rename
-dates<- as.character(KNMI_data$YYYYMMDD)
-dates<-as.Date(dates, "%Y%m%d")
+dates <- as.character(KNMI_data$YYYYMMDD)
+dates <- as.Date(dates, "%Y%m%d")
 KNMI_data[,2]<-dates
-KNMI_data%>% 
+KNMI_data %>% 
     mutate(YYYYMMDD = as.Date(YYYYMMDD))
 names(KNMI_data)[2] <- "date"
 
@@ -154,7 +154,7 @@ Neerslag = KNMIVA2017[, c('date', 'DR')]
 
 modelData <- left_join(modelData, Neerslag, by = "date")
 
-#' Update Model data: add price index dummies
+#' Update modeldata: add price index dummies
 priceDummies <- data.frame(matrix(0,nrow(OtherMarketingNL),3))
 priceDummies <- OtherMarketingNL[, c(1, 14, 15)]
 names(priceDummies) <- cbind("date", "cheapest", "cheaperthanavg")
@@ -163,25 +163,59 @@ priceDummies$cheaperthanavg <- priceDummies$cheaperthanavg - min(priceDummies$ch
 
 modelData <- left_join(modelData, priceDummies, by = "date")
 
-#' Update Model data: add weekdaydummy
+#' Update modeldata: add marketing costs televisions and laptops
+SpillOverDisplay <- Display %>% 
+    filter(subsidiary_id == 1,
+           product_type_id == c("2627", "17632")) %>% 
+    group_by(date, product_type_id) %>% 
+    summarise(costDisplay = sum(cost))
+
+SpillOverSocial <- Social %>% 
+    filter(subsidiaryid == 1,
+           product_type_id == c("2627", "17632")) %>% 
+    group_by(date, product_type_id) %>% 
+    summarise(costSocial = sum(cost))
+
+SpillOverOther <- OtherMarketing %>% 
+    filter(key %in% c("17632_11", "2627_11")) %>% 
+    mutate(key = as.numeric(substr(key, 1, nchar(as.character(key)) - 3))) %>% 
+    group_by(date, key) %>% 
+    summarise(costOther = sum(searchads_cost / search_volume, shoppingads_cost / search_volume, tv_cost, radio_cost, ooh_cost))
+
+SpillOver <- SpillOverDisplay %>% 
+    left_join(y = SpillOverSocial, by = c("date", "product_type_id")) %>% 
+    left_join(y = SpillOverOther, by = c("date", "product_type_id" = "key")) %>% 
+    mutate(product_type_id1 = product_type_id,
+           product_type_id2 = product_type_id) %>% 
+    spread(product_type_id, costDisplay) %>% 
+    rename("17632Display" = "17632", "2627Display" = "2627") %>% 
+    spread(product_type_id1, costSocial) %>% 
+    rename("17632Social" = "17632", "2627Social" = "2627") %>% 
+    spread(product_type_id2, costOther) %>% 
+    rename("17632Other" = "17632", "2627Other" = "2627") 
+SpillOver[is.na(SpillOver)] <- 0
+
+SpillOver <- SpillOver %>% 
+    group_by(date) %>% 
+    summarise_all(sum)
+
+modelData <- modelData %>% 
+    left_join(SpillOver, by = "date")
+
+#' Update modeldata: add weekdaydummy
 modelData <- left_join(modelData, WeekdayDummy, by = "date")
 
-#' Update Model data: add month dummy
+#' Update modeldata: add month dummy
 modelData <- left_join(modelData, MonthDummy, by = "date")
 
-#' Update Model data: add seasonal dummy
+#' Update modeldata: add seasonal dummy
 modelData <- left_join(modelData, SeasonalDummy, by = "date")
 
-#Update Model data: add PartyDays dummy
+#' Update modeldata: add partyDays dummy
 modelData <- modelData %>% 
     left_join(FeestdagenNL, by = "date")
 
-
-
 #' Remove data from environment that is now in one big table
-rm(sales_perday)
-rm(display_cost_perday)
-rm(social_cost_perday)
-rm(priceDummies)
+rm(sales_perday, display_cost_perday, social_cost_perday, priceDummies, CompetitorNA, CompetitorExtrapolated, ExtrapolerenNoRetailer, ExtrapolerenRetailer, CompletedDataNoRetailer, CompletedDataRetailer, SpillOver, SpillOverOther, SpillOverSocial, SpillOverDisplay)
 
 modelData[is.na(modelData)] <- 0
