@@ -2,7 +2,7 @@ library(dplyr)
 library(lubridate)
 library(ggplot2)
 library(robustHD)
-# library(caret)
+library(caret)
 library(glmnet)
 
 source("data_inlezen.R")
@@ -11,43 +11,28 @@ source("create_modeldata_table.R")
 
 
 y <- modelData$sales
-constant <- rep(1, 1100)
 x <- modelData[,c(3:34)] ## alle x'en
+cleanx <- x
 D <- modelData[, c(35:61)] ## alle dummies
-D <- cbind(constant, D)
 
-#cross effects
-x <- x %>% 
-    mutate(mobileDesktopS_FBAndInsta = mobileDesktopS * FacebookAndInstagram,
-           mobileDesktopS_Instagram = mobileDesktopS * Instagram,
-           mobileDesktopS_mediaS = mobileDesktopS * mediaS,
-           mobileDesktopS_retargeting = mobileDesktopS * retargeting,
-           mobiledesktopS_cheapest = cheapest * mobileDesktopS,
-           mobiledesktopS_DR = DR * mobileDesktopS,
-           mediaS_FBAndInsta = mediaS * FacebookAndInstagram,
-           mediaS_Instagram = mediaS * Instagram,
-           mediaS_retargeting = mediaS * retargeting,
-           mediaS_cheapest = mediaS* cheapest,
-           mediaS_DR = DR * mediaS,
-           retargeting_FBAndInsta = retargeting * FacebookAndInstagram,
-           retargeting_Instagram = retargeting * Instagram,
-           retargeting_cheapest = retargeting* cheapest,
-           retargeting_desktop = retargeting * desktop,
-           FBAndInsta_cheapest = FacebookAndInstagram * cheapest,
-           FBAndInsta_cheaperthanavg = FacebookAndInstagram * cheaperthanavg,
-           FBAndInsta_cheapest = FacebookAndInstagram* cheapest,
-           FBAndInsta_desktop = FacebookAndInstagram* desktop,
-           cheapest_desktop = cheapest * desktop,
-           cheapest_Instagram = cheapest * Instagram,
-           desktop_Instagram = desktop * Instagram,
-           DR_retargeting = DR * retargeting,
-           DR_FBAndInsta = DR * FacebookAndInstagram
-    )
+crossx <- matrix(NA, nrow(x), 482)
+x <- cbind(x,crossx)
+count <- 33
+for (i in 1:31){
+    for (j in (i+1):32){
+        if (sum(abs(x[,i] * x[,j])) != 0){
+            x[,count] <- x[,i] * x[,j]
+            names(x)[count] <- paste(names(x)[i], names(x)[j], sep = " ")
+            count <- count + 1 
+        }
+    }
+}
+
 
 x <- data.matrix(x)
 D <- data.matrix(D)
 adX <- x[,c(1:24, 27:29)] ##Hier alle x'en die in de adstock gaan
-noAdX <- x[, c(25, 26, 30:55)] ## Hier alle x'en die niet in de adstock gaan
+noAdX <- x[, c(25, 26, 30:ncol(x))] ## Hier alle x'en die niet in de adstock gaan
 
 #Frisch Waugh
 
@@ -86,7 +71,7 @@ st_ad <- standardize(adstock, centerFun = mean, scaleFun = sd)
 
 ##model
 trend <- Trend/365
-ols <- lm(log(y) ~ -1 + trend[,2] + D + st_ad + st_x)
+ols <- lm(log(y) ~ trend[,2] + D + st_ad + st_x)
 summary(ols)
 
 #Plot residuals hele model
@@ -99,8 +84,10 @@ t
 #Lasso
 X <- cbind(trend[,2], st_ad, st_x, D)
 set.seed(1234)
-cv <- cv.glmnet(X, log(y), alpha = 1, standardize = FALSE, penalty.factor = rep(c(1,0), c(58, 27)))
-model <- glmnet(X, log(y), alpha = 1, lambda = ((cv$lambda.min+cv$lambda.1se)/2), standardize = FALSE, penalty.factor = rep(c(1,0), c(58, 27))) 
+cv <- cv.glmnet(X, log(y), alpha = 1, standardize = FALSE, penalty.factor = rep(c(1,0), c(58, 
+                                                                                          27)))
+model <- glmnet(X, log(y), alpha = 1, lambda = ((cv$lambda.min+cv$lambda.1se)/2), standardize = 
+                    FALSE, penalty.factor = rep(c(1,0), c(58, 27))) 
 coef(model)
 
 #model trend + dummies
