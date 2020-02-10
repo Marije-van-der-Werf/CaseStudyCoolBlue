@@ -2,7 +2,6 @@ library(dplyr)
 library(lubridate)
 library(ggplot2)
 library(robustHD)
-# library(caret)
 library(glmnet)
 
 source("data_inlezen.R")
@@ -83,47 +82,47 @@ st_ad <- standardize(adstock, centerFun = mean, scaleFun = sd)
 
 #' Model
 trend <- Trend/365
-ols <- lm(log(y) ~ -1 + trend[,2] + D + st_ad + st_x)
-summary(ols)
+# ols <- lm(log(y) ~ -1 + trend[,2] + D + st_ad + st_x)
+# summary(ols)
 
 #' Plot residuals whole model
-resi <- residuals(ols)
-resi <- data.matrix(resi)
-t <- ggplot(modelData, aes(x = date))
-t <- t + geom_line(aes(y = resi, colour = "Residuals"))
-t
+# resi <- residuals(ols)
+# resi <- data.matrix(resi)
+# t <- ggplot(modelData, aes(x = date))
+# t <- t + geom_line(aes(y = resi, colour = "Residuals"))
+# t
 
 #' Lasso
 X <- cbind(trend[,2], st_ad, st_x, D)
-set.seed(1234)
-cv <- cv.glmnet(X, log(y), alpha = 1, standardize = FALSE, penalty.factor = rep(c(1,0), c(57, 27)))
-model <- glmnet(X, log(y), alpha = 1, lambda = ((cv$lambda.min+cv$lambda.1se)/2), standardize = FALSE, penalty.factor = rep(c(1,0), c(57, 27))) 
-coef(model)
+# set.seed(1234)
+# cv <- cv.glmnet(X, log(y), alpha = 1, standardize = FALSE, penalty.factor = rep(c(1,0), c(57, 27)))
+# model <- glmnet(X, log(y), alpha = 1, lambda = ((cv$lambda.min+cv$lambda.1se)/2), standardize = FALSE, penalty.factor = rep(c(1,0), c(57, 27))) 
+# coef(model)
 
 #' Model trend + dummies
-ols2 <- lm(log(y) ~ -1 + trend[,2] + D)
-summary(ols2)
-resi2 <- residuals(ols2)
-t2 <- ggplot(modelData, aes(x=date))
-t2 <- t2 + geom_line(aes(y=resi2, colour = "Residuals"))
-t2
+# ols2 <- lm(log(y) ~ -1 + trend[,2] + D)
+# summary(ols2)
+# resi2 <- residuals(ols2)
+# t2 <- ggplot(modelData, aes(x=date))
+# t2 <- t2 + geom_line(aes(y=resi2, colour = "Residuals"))
+# t2
 
 #' Model only trend (+ constant)
-ols3 <- lm(log(y) ~ trend[,2])
-summary(ols3)
-resi3 <- residuals(ols3)
-resi3 <- data.matrix(resi3)
-
-t3 <- ggplot(modelData, aes(x = date))
-t3 <- t3 + geom_line(aes(y = resi3, colour = "Residuals"))
-t3
+# ols3 <- lm(log(y) ~ trend[,2])
+# summary(ols3)
+# resi3 <- residuals(ols3)
+# resi3 <- data.matrix(resi3)
+# 
+# t3 <- ggplot(modelData, aes(x = date))
+# t3 <- t3 + geom_line(aes(y = resi3, colour = "Residuals"))
+# t3
 
 #' Model only dummies
-ols4 <- lm(log(y) ~ D)
-summary(ols4)
-resi4 <- residuals(ols4)
-resi4 <- data.matrix(resi4)
-
-t4 <- ggplot(modelData, aes(x = date))
-t4 <- t4 + geom_line(aes(y = resi4, colour = "Residuals"))
-t4
+# ols4 <- lm(log(y) ~ D)
+# summary(ols4)
+# resi4 <- residuals(ols4)
+# resi4 <- data.matrix(resi4)
+# 
+# t4 <- ggplot(modelData, aes(x = date))
+# t4 <- t4 + geom_line(aes(y = resi4, colour = "Residuals"))
+# t4

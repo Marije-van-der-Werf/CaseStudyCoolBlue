@@ -1,19 +1,22 @@
-library(MLGL)
+###################################################################################################
+# Script for grouped lasso with our selfmade crosseffects, spillover and dummies
+###################################################################################################
+
 library(gglasso)
-library(stringr)
 source("lassorutger.R")
-#' Voor X run make_model tot en met regel 100
+source("make_model_spillover.R")
 
-var <- c(1:33, 58:84)
-group <- c(1:33, rep(34, 27))
-group <- c(group, rep(35:57, each = 3))
-var <- c(var, 34, 22, 25, 35, 22, 23, 36, 22, 15, 37, 22, 6, 38, 22, 32, 39, 22, 31, 40, 15, 25, 41, 15, 23, 42, 15, 6, 43, 15, 32, 44, 15, 31, 45, 6, 25, 46, 6, 23, 47, 6, 32, 48, 6, 9, 49, 25 , 32, 50, 25, 33, 51, 25, 9, 52, 32, 9, 53, 32, 23, 54, 9, 23, 55, 31, 6, 56, 31, 25)
+#' Make groups of variables
+var <- c(1:39, 64:90)
+group <- c(1:39, rep(40, 27))
+group <- c(group, rep(41:64, each = 3))
+var <- c(var, 40, 22, 25, 41, 22, 23, 42, 22, 15, 43, 22, 6, 44, 22, 32, 45, 22, 31, 46, 15, 25, 47, 15, 23, 48, 15, 6, 49, 15, 32, 50, 15, 31, 51, 6, 25, 52, 6, 23, 53, 6, 32, 54, 6, 9, 55, 25 , 32, 56, 25, 33, 57, 25, 9, 58, 32, 9, 59, 32, 23, 60, 9, 23, 61, 31, 6, 62, 31, 25, 63, 2, 13)
 
-w <-  rep(1,57)
+#' Weights
+w <-  rep(1,64)
 w[1] <- 0
-w[34] <- 0
-w[35:57] <- sqrt(3)
+w[40] <- 0
+w[41:64] <- sqrt(3)
 
 res <- LASSOLISANNE(X, log(y), var, group, weight = w, loss = "ls")
-res$beta 
-res[["beta"]][[41]] # result of the 41st lambda 
+res[["beta"]][[39]] # result of the 39st lambda 
