@@ -130,24 +130,24 @@ for (i in 1:s[1]){
 #' Dummy voor feestdagen/acties gekoppeld aan datums
 Feestdagen <- SalesNL %>% 
     select(date) %>% 
-    mutate(BlackFriday = ifelse(date == "2017-11-23", 1, 0), # 2017 en 2018 donderdag tm maandag, 2019 maandag tm maandag
-           BlackFriday = ifelse(date == "2017-11-24", 1, BlackFriday),
-           BlackFriday = ifelse(date == "2017-11-25", 1, BlackFriday),
-           BlackFriday = ifelse(date == "2017-11-26", 1, BlackFriday),
-           BlackFriday = ifelse(date == "2017-11-27", 1, BlackFriday),
-           BlackFriday = ifelse(date == "2018-11-22", 1, BlackFriday),
-           BlackFriday = ifelse(date == "2018-11-23", 1, BlackFriday),
-           BlackFriday = ifelse(date == "2018-11-24", 1, BlackFriday),
-           BlackFriday = ifelse(date == "2018-11-25", 1, BlackFriday),
-           BlackFriday = ifelse(date == "2018-11-26", 1, BlackFriday),
-           BlackFriday = ifelse(date == "2019-11-25", 1, BlackFriday),
-           BlackFriday = ifelse(date == "2019-11-26", 1, BlackFriday),
-           BlackFriday = ifelse(date == "2019-11-27", 1, BlackFriday),
-           BlackFriday = ifelse(date == "2019-11-28", 1, BlackFriday),
-           BlackFriday = ifelse(date == "2019-11-29", 1, BlackFriday),
-           BlackFriday = ifelse(date == "2019-11-30", 1, BlackFriday),
-           BlackFriday = ifelse(date == "2019-12-01", 1, BlackFriday),
-           BlackFriday = ifelse(date == "2019-12-01", 1, BlackFriday), 
+    mutate(BF17 = ifelse(date == "2017-11-23", 1, 0), # 2017 en 2018 donderdag tm maandag, 2019 maandag tm maandag
+           BF17 = ifelse(date == "2017-11-24", 1, BF17),
+           BF17 = ifelse(date == "2017-11-25", 1, BF17),
+           BF17 = ifelse(date == "2017-11-26", 1, BF17),
+           BF17 = ifelse(date == "2017-11-27", 1, BF17),
+           BF18 = ifelse(date == "2018-11-22", 1, 0),
+           BF18 = ifelse(date == "2018-11-23", 1, BF18),
+           BF18 = ifelse(date == "2018-11-24", 1, BF18),
+           BF18 = ifelse(date == "2018-11-25", 1, BF18),
+           BF18 = ifelse(date == "2018-11-26", 1, BF18),
+           BF19 = ifelse(date == "2019-11-25", 1, 0),
+           BF19 = ifelse(date == "2019-11-26", 1, BF19),
+           BF19 = ifelse(date == "2019-11-27", 1, BF19),
+           BF19 = ifelse(date == "2019-11-28", 1, BF19),
+           BF19 = ifelse(date == "2019-11-29", 1, BF19),
+           BF19 = ifelse(date == "2019-11-30", 1, BF19),
+           BF19 = ifelse(date == "2019-12-01", 1, BF19),
+           BF19 = ifelse(date == "2019-12-01", 1, BF19), 
            iPhoneLaunch = ifelse(date == "2017-09-18", 1, 0), # meestal de dag van beschikbaarheid en de vier dagen daarvoor
            iPhoneLaunch = ifelse(date == "2017-09-19", 1, iPhoneLaunch),
            iPhoneLaunch = ifelse(date == "2017-09-20", 1, iPhoneLaunch),
@@ -240,9 +240,9 @@ Feestdagen <- SalesNL %>%
            WinterSolden = ifelse(date == "2019-01-04", 1, WinterSolden))
 
 FeestdagenNL <- Feestdagen %>% 
-    select(date, BlackFriday, iPhoneLaunch, BTWdeals, KerstCadeaus, ChristelijkeFeestdag, Koningsdag, OudEnNieuw)
+    select(date, BF17, BF18, BF19, iPhoneLaunch, BTWdeals, KerstCadeaus, ChristelijkeFeestdag, Koningsdag, OudEnNieuw)
 
 FeestdagenBE <- Feestdagen %>%
-    select(date, BlackFriday, KerstCadeaus, ChristelijkeFeestdag, OudEnNieuw, WinterSolden)
+    select(date, BF17, BF18, BF19, KerstCadeaus, ChristelijkeFeestdag, OudEnNieuw, WinterSolden)
 
 rm(Feestdagen)

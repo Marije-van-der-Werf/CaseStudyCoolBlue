@@ -199,6 +199,15 @@ SpillOver <- SpillOver %>%
     group_by(date) %>% 
     summarise_all(sum)
 
+SpillOverAllTV <- OtherMarketing %>% 
+    filter(key %in% c("17632_11", "2093_11", "2627_11", "2675_11", "2676_11", "2677_11", "2678_11", "2679_11", "8804_11")) %>% 
+    mutate(key = as.numeric(substr(key, 1, nchar(as.character(key)) - 3))) %>% 
+    group_by(date) %>% 
+    summarise(allTVcost = sum(tv_cost))
+
+SpillOver <- SpillOver %>% 
+    left_join(SpillOverAllTV, by = "date")
+
 modelData <- modelData %>% 
     left_join(SpillOver, by = "date")
 
