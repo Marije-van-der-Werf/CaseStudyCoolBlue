@@ -1,17 +1,19 @@
+###################################################################################################
+# Script voor "grote X" na Coolblue gesprek
+###################################################################################################
+
 library(dplyr)
 library(lubridate)
-library(ggplot2)
 library(robustHD)
 library(glmnet)
 
-source("data_inlezen.R")
-source("dummies.R")
+# source("data_inlezen.R")
+# source("dummies.R")
 source("create_modeldata.R")
 
 y <- modelData$sales
-x <- modelData[, c(3:53)] ## alle x'en
-combinationx <- modelData[, c(1:53)]
-D <- modelData[, c(54:82)] ## alle dummies
+x <- modelData[, c(3:53)] # alle x'en
+D <- modelData[, c(54:82)] # alle dummies
 
 x <- x[, colSums(x != 0) > 0]
 
@@ -53,8 +55,8 @@ count <- count + 1
 
 x <- data.matrix(x)
 D <- data.matrix(D)
-adX <- x[,c(1:24, 27:29)] ##Hier alle x'en die in de adstock gaan
-noAdX <- x[, c(25, 26, 30:55)] ## Hier alle x'en die niet in de adstock gaan
+adX <- x[,c(1:27, 30:32, 36:42)] ##Hier alle x'en die in de adstock gaan # Kolommen 36:42 zijn voor de spillovereffecten, nog checken of deze in de adstock moeten, of misschien zelfs een eigen adstock moeten
+noAdX <- x[, c(28, 29, 33:35, 43:399)] ## Hier alle x'en die niet in de adstock gaan
 
 Test <- modelData %>% 
     select(date) %>% 
@@ -66,12 +68,10 @@ Trend <- data.matrix(Test)
 dimX <- dim(adX)
 adstock <- matrix(NA, nrow = dimX[1], ncol = dimX[2])
 lambda <- 0.85
+
 for(j in 1:(dimX[2])){
-    
-    
     adstock[1,j] = adX[1,j]
-    for(i in 2:dimX[1])
-    {
+    for(i in 2:dimX[1]){
         adstock[i,j] = log(1+adX[i,j]) + lambda * adstock[i-1,j]
     }
 }
@@ -84,12 +84,12 @@ st_ad <- standardize(adstock, centerFun = mean, scaleFun = sd)
 
 ##model
 trend <- Trend/365
-ols <- lm(log(y) ~ trend[,2] + D + st_ad + st_x)
+ols <- lm(log(y) ~ trend[,2] + st_ad + st_x + D)
 summary(ols)
 
 #Lasso
 X <- cbind(trend[,2], st_ad, st_x, D)
-set.seed(1234)
-cv <- cv.glmnet(X, log(y), alpha = 1, standardize = FALSE, penalty.factor = rep(c(1,0), c(58, 27)))
-model <- glmnet(X, log(y), alpha = 1, lambda = ((cv$lambda.min+cv$lambda.1se)/2), standardize = FALSE, penalty.factor = rep(c(1,0), c(58, 27))) 
-coef(model)
+# set.seed(1234)
+# cv <- cv.glmnet(X, log(y), alpha = 1, standardize = FALSE, penalty.factor = rep(c(1,0), c(58, 27)))
+# model <- glmnet(X, log(y), alpha = 1, lambda = ((cv$lambda.min+cv$lambda.1se)/2), standardize = FALSE, penalty.factor = rep(c(1,0), c(58, 27))) 
+# coef(model)
