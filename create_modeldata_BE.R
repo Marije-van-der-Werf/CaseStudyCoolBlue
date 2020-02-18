@@ -1,5 +1,5 @@
 ###################################################################################################
-# Script voor create_modeldata na Coolblue gesprek
+# Script voor create_modeldata na Coolblue gesprek voor Belgie
 ###################################################################################################
 
 library(lubridate)
@@ -8,10 +8,11 @@ library(mice)
 source("data_inlezen.R")
 source("dummies.R")
 
-#'We start with the data for NL only
+#'We start with the data for BE only
+rm(Display2093, DisplayBEFR, DisplayNL, FeestdagenNL, OtherMarketing2093, OtherMarketingNL, Sales2093, SalesNL, Social2093, SocialBEFR, SocialNL)
 
 #'We take the total display costs on one day
-Display_per_combi <- DisplayNL %>% 
+Display_per_combi <- DisplayBE %>% 
     mutate(D_Sa_De_Pr = ifelse(campaign_type %in% c("Sales", "Visibility") & device == "Desktop" & strategy == "Prospecting", cost, 0),
            D_Sa_De_Re = ifelse(campaign_type %in% c("Sales", "Visibility") & device == "Desktop" & strategy == "Retargeting", cost, 0),
            D_Sa_De_un = ifelse(campaign_type %in% c("Sales", "Visibility") & device == "Desktop" & strategy == "unknown", cost, 0),
@@ -41,13 +42,13 @@ Display_per_combi <- DisplayNL %>%
     summarise_all(sum) %>% 
     ungroup()
 
-sales_perday <- SalesNL[order(SalesNL$date), c("date", "sales")]
+sales_perday <- SalesBE[order(SalesBE$date), c("date", "sales")]
 
 #' Update modeldata: add display costs and sales  
 modelData <- left_join(sales_perday, Display_per_combi, by = "date")
 
-#'We take the total social costs on one day
-Social_per_combi <- SocialNL %>% 
+#' We take the total social costs on one day
+Social_per_combi <- SocialBE %>% 
     mutate(S_Sa_Fa_Pr = ifelse(goal %in% c("Sales", "Visibility") & channel == "Facebook" & strategy == "Prospecting", cost, 0),
            S_Sa_Fa_Re = ifelse(goal %in% c("Sales", "Visibility") & channel == "Facebook" & strategy == "Retargeting", cost, 0),
            S_Sa_FI_Pr = ifelse(goal %in% c("Sales", "Visibility") & channel == "Facebook and Instagram" & strategy == "Prospecting", cost, 0),
@@ -69,34 +70,34 @@ Social_per_combi <- SocialNL %>%
 modelData <- left_join(modelData, Social_per_combi, by = "date")
 
 #' Update modeldata: add search_ads costs and shopping_ads costs
-adspervolume <- OtherMarketingNL$searchads_cost / OtherMarketingNL$search_volume
-shoppingpervolume <- OtherMarketingNL$shoppingads_cost / OtherMarketingNL$search_volume
-googleCosts <- data.frame(matrix(0,nrow(OtherMarketingNL),3))
+adspervolume <- OtherMarketingBE$searchads_cost / OtherMarketingBE$search_volume
+shoppingpervolume <- OtherMarketingBE$shoppingads_cost / OtherMarketingBE$search_volume
+googleCosts <- data.frame(matrix(0,nrow(OtherMarketingBE),3))
 names(googleCosts) <- cbind("date", "adspervolume", "shoppingpervolume")
-googleCosts[,"date"] <- OtherMarketingNL$date
+googleCosts[,"date"] <- OtherMarketingBE$date
 googleCosts[,"adspervolume"] <- adspervolume
 googleCosts[, "shoppingpervolume"] <- shoppingpervolume
 modelData <- left_join(modelData, googleCosts, by = "date")
 
-modelData <- left_join(modelData,OtherMarketingNL[,c("date", "delivered_emails")], by = "date")
+modelData <- left_join(modelData,OtherMarketingBE[,c("date", "delivered_emails")], by = "date")
 
 #' Update modeldata: add extrapolated competitor data
-CompetitorNL <- Competitor %>% 
-    filter(country == "Netherlands") %>% 
+CompetitorBE <- Competitor %>% 
+    filter(country == "Belgie NL") %>% 
     mutate(sellsPhones = ifelse(brand %in% c("ALIEXPRESS", "ALTERNATE", "AMAZON", "APPLE", "BCC", "BOL.COM", "EXPERT", "KREFEL", "LENOVO", "LG", "MEDIA MARKT", "MEDIAMARKT", "SAMSUNG", "VANDEN BORRE", "WEHKAMP.NL"), 1, 0),
            GRPsellsPhones = ifelse(sellsPhones == 1, GRP, 0),
            GRPnoPhones = ifelse(sellsPhones == 0, GRP, 0))
 
-CompetitorNL <- CompetitorNL %>% 
-    select(- c(channel,brand, country, sellsPhones)) %>% 
+CompetitorBE <- CompetitorBE %>% 
+    select(- c(channel, brand, country, sellsPhones)) %>% 
     group_by(date) %>% 
     summarise_all(sum)
 
-datums <- SalesNL %>% 
+datums <- SalesBE %>% 
     select(date)
 
 CompetitorNA <- datums %>% 
-    left_join(CompetitorNL, by = "date")
+    left_join(CompetitorBE, by = "date")
 
 set.seed(6)
 ExtrapolerensellsPhones <- mice(CompetitorNA %>% select(date, GRPsellsPhones), m = 1, method = "pmm", maxit = 1)
@@ -111,12 +112,12 @@ CompetitorExtrapolated <- CompletedDatasellPhones %>%
 
 modelData <- left_join(modelData, CompetitorExtrapolated, by = "date")
 
-KNMI_data <- read.table("etmgeg_260.txt", header = TRUE, sep = ",", dec = ".")
+KNMI_data <- read.table("etmgeg_380.txt", header = TRUE, sep = ",", dec = ".")
 
 #' Put dates from integer to date format and rename
 dates <- as.character(KNMI_data$YYYYMMDD)
 dates <- as.Date(dates, "%Y%m%d")
-KNMI_data[,2]<-dates
+KNMI_data[,2] <- dates
 KNMI_data %>% 
     mutate(YYYYMMDD = as.Date(YYYYMMDD))
 names(KNMI_data)[2] <- "date"
@@ -136,8 +137,8 @@ Neerslag = KNMIVA2017[, c('date', 'DR')]
 modelData <- left_join(modelData, Neerslag, by = "date")
 
 #' Update modeldata: add price index dummies
-priceDummies <- data.frame(matrix(0,nrow(OtherMarketingNL),3))
-priceDummies <- OtherMarketingNL[, c(1, 14, 15)]
+priceDummies <- data.frame(matrix(0,nrow(OtherMarketingBE),3))
+priceDummies <- OtherMarketingBE[, c(1, 14, 15)]
 names(priceDummies) <- cbind("date", "cheapest", "cheaperthanavg")
 priceDummies$cheapest <- priceDummies$cheapest - min(priceDummies$cheapest)
 priceDummies$cheaperthanavg <- priceDummies$cheaperthanavg - min(priceDummies$cheaperthanavg)
@@ -146,19 +147,21 @@ modelData <- left_join(modelData, priceDummies, by = "date")
 
 #' Update modeldata: add marketing costs televisions and laptops
 SpillOverDisplay <- Display %>% 
-    filter(subsidiary_id == 1,
+    filter(subsidiary_id == 3,
+           language_id != 4,
            product_type_id == c("2627", "17632")) %>% 
     group_by(date, product_type_id) %>% 
     summarise(costDisplay = sum(cost))
 
 SpillOverSocial <- Social %>% 
     filter(subsidiaryid == 1,
+           language_id != 4,
            product_type_id == c("2627", "17632")) %>% 
     group_by(date, product_type_id) %>% 
     summarise(costSocial = sum(cost))
 
 SpillOverOther <- OtherMarketing %>% 
-    filter(key %in% c("17632_11", "2627_11")) %>% 
+    filter(key %in% c("17632_31", "2627_31")) %>% 
     mutate(key = as.numeric(substr(key, 1, nchar(as.character(key)) - 3))) %>% 
     group_by(date, key) %>% 
     summarise(costOther = sum(searchads_cost / search_volume, shoppingads_cost / search_volume, tv_cost, radio_cost, ooh_cost))
@@ -181,7 +184,7 @@ SpillOver <- SpillOver %>%
     summarise_all(sum)
 
 SpillOverAllTV <- OtherMarketing %>% 
-    filter(key %in% c("17632_11", "2093_11", "2627_11", "2675_11", "2676_11", "2677_11", "2678_11", "2679_11", "8804_11")) %>% 
+    filter(key %in% c("17632_31", "2093_31", "2627_31", "2675_31", "2676_31", "2677_31", "2678_31", "2679_31", "8804_31")) %>% 
     mutate(key = as.numeric(substr(key, 1, nchar(as.character(key)) - 3))) %>% 
     group_by(date) %>% 
     summarise(allTVcost = sum(tv_cost))
@@ -203,7 +206,7 @@ modelData <- left_join(modelData, SeasonalDummy, by = "date")
 
 #' Update modeldata: add partyDays dummy
 modelData <- modelData %>% 
-    left_join(FeestdagenNL, by = "date")
+    left_join(FeestdagenBE, by = "date")
 
 #' Remove data from environment that is now in one big table
 rm(sales_perday, Display_per_combi, Social_per_combi, priceDummies, CompetitorNA, CompetitorExtrapolated, ExtrapolerensellsPhones, ExtrapolerenNoPhones, CompletedDatasellPhones, CompletedDataNoPhones, SpillOver, SpillOverOther, SpillOverSocial, SpillOverDisplay)

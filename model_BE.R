@@ -1,5 +1,5 @@
 ###################################################################################################
-# Script voor "grote X" na Coolblue gesprek
+# Script voor "grote X" na Coolblue gesprek voor Belgie
 ###################################################################################################
 
 library(dplyr)
@@ -9,20 +9,20 @@ library(glmnet)
 
 # source("data_inlezen.R")
 # source("dummies.R")
-source("create_modeldata.R")
+source("create_modeldata_BE.R")
 
 y <- modelData$sales
 x <- modelData[, c(3:53)] # alle x'en
-D <- modelData[, c(54:82)] # alle dummies
+D <- modelData[, c(54:80)] # alle dummies
 
 x <- x[, colSums(x != 0) > 0]
 
 #' Cross effects
-crossx <- matrix(NA, nrow(x), 359)
+crossx <- matrix(NA, nrow(x), 310)
 x <- cbind(x, crossx)
-count <- 43
-for (i in 1:26){
-    for (j in (i+1):27){
+count <- 41
+for (i in 1:24){
+    for (j in (i+1):25){
         if (sum(abs(x[,i] * x[,j])) != 0){ # hier worden al de kolommen die gelijk aan nul zijn eruit gehaald
             x[,count] <- x[,i] * x[,j]
             names(x)[count] <- paste(names(x)[i], names(x)[j], sep = " ")
@@ -31,32 +31,32 @@ for (i in 1:26){
     }
 }
 
-count <- 347
-for (i in 1:27){
-    if (sum(abs(x[,i] * x[,33])) != 0){
-        x[,count] <- x[,i] * x[,33]
-        names(x)[count] <- paste(names(x)[i], names(x)[33], sep = " ")
+count <- 300
+for (i in 1:25){
+    if (sum(abs(x[,i] * x[,31])) != 0){
+        x[,count] <- x[,i] * x[,31]
+        names(x)[count] <- paste(names(x)[i], names(x)[31], sep = " ")
         count <- count + 1
     }
 }
 
-count <- 374
-for (i in 1:27){
-    if (sum(abs(x[,i] * x[,30])) != 0){
-        x[,count] <- x[,i] * x[,30]
-        names(x)[count] <- paste(names(x)[i], names(x)[30], sep = " ")
+count <- 325
+for (i in 1:25){
+    if (sum(abs(x[,i] * x[,28])) != 0){
+        x[,count] <- x[,i] * x[,28]
+        names(x)[count] <- paste(names(x)[i], names(x)[28], sep = " ")
         count <- count + 1
     }
 }
 
-x[,401] <- x[,30] * x[,33]
-names(x)[401] <- paste(names(x)[30], names(x)[33], sep = " ")
+x[,350] <- x[,28] * x[,31]
+names(x)[350] <- paste(names(x)[28], names(x)[31], sep = " ")
 count <- count + 1
 
 x <- data.matrix(x)
 D <- data.matrix(D)
-adX <- x[,c(1:27, 30:32, 36:42)] ##Hier alle x'en die in de adstock gaan # Kolommen 36:42 zijn voor de spillovereffecten, nog checken of deze in de adstock moeten, of misschien zelfs een eigen adstock moeten
-noAdX <- x[, c(28, 29, 33:35, 43:401)] ## Hier alle x'en die niet in de adstock gaan
+adX <- x[, c(1:25, 28:30, 34:40)] ##Hier alle x'en die in de adstock gaan # Kolommen 36:42 zijn voor de spillovereffecten, nog checken of deze in de adstock moeten, of misschien zelfs een eigen adstock moeten
+noAdX <- x[, c(26, 27, 31:33, 41:350)] ## Hier alle x'en die niet in de adstock gaan
 
 Test <- modelData %>% 
     select(date) %>% 

@@ -65,13 +65,15 @@ SocialNL <- Social2093 %>%
 
 #' Belgie data
 DisplayBE <- Display2093 %>%
-    filter(subsidiary_id == 3)
+    filter(subsidiary_id == 3,
+           language_id == 1)
 OtherMarketingBE <- OtherMarketing2093 %>%
-    filter(key %in% c("2093_31", "2093_32", "2093_34"))
+    filter(key %in% c("2093_31", "2093_32"))
 SalesBE <- Sales2093 %>% 
     filter(subsidiary_id == 3)
 SocialBE<- Social2093 %>% 
-    filter(subsidiaryid == 3)
+    filter(subsidiaryid == 3,
+           language_id == 1)
 
 
 #' Frans talige data
