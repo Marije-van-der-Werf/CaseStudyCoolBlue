@@ -23,5 +23,5 @@ w[1] <- 0
 w[44] <- 0
 w[45:403] <- sqrt(3)
 
-res <- LASSOLISANNE(X, y, var, group, weight = w, loss = "ls")
+res <- LASSOLISANNE(X, log(y), var, group, weight = w, loss = "ls")
 res[["beta"]][[81]] # result of the 81 lambda, beetje random gekozen nu nog, moet nog een betere voor in de plaats komen

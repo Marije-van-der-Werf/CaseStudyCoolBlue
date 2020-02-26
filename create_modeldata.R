@@ -41,7 +41,7 @@ Display_per_combi <- DisplayNL %>%
     summarise_all(sum) %>% 
     ungroup()
 
-sales_perday <- SalesNL[order(SalesNL$date), c("date", "products_sold")]
+sales_perday <- SalesNL[order(SalesNL$date), c("date", "sales")]
 
 #' Update modeldata: add display costs and sales  
 modelData <- left_join(sales_perday, Display_per_combi, by = "date")
