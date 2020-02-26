@@ -11,7 +11,7 @@ library(glmnet)
 # source("dummies.R")
 source("create_modeldata.R")
 
-y <- modelData$sales
+y <- modelData$products_sold
 x <- modelData[, c(3:53)] # alle x'en
 D <- modelData[, c(54:82)] # alle dummies
 
