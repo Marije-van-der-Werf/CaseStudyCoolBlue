@@ -57,3 +57,29 @@ Test3 <- Test3 %>% # zet de standaard deviaties naast de coefficienten
 Elasticity <- Test3 %>% 
     mutate(elasticiteit = coeff / V1) %>%  # bereken elasticiteit
     rename("StDev" = "V1")
+
+###################################################################################################
+coeff <- ECM_model1[["coefficients"]] # zet coefficienten uit ECM in dataframe
+Test4 <- as.data.frame(coeff) %>% 
+    rownames_to_column("vars")
+
+Test4$vars <- gsub("`", "", Test4$vars) # zorg dat namen overeenkomen 
+Test4$Match <- grepl(pattern = "Lag1$", Test4$vars) # selecteer de "Lag1 variabelen"
+Test4 <- Test4 %>% 
+    filter(Match == TRUE) %>% 
+    select(- Match)
+Test4$vars <- gsub("Lag1", "", Test4$vars) # zorg dat namen overeenkomen
+
+yVars <- Test4 %>% 
+    filter(vars == "y")
+andereVars <- Test4 %>% 
+    filter(vars != "y")
+
+andereVars <- andereVars %>% 
+    mutate(longTerm = andereVars$coeff / - yVars$coeff)
+
+andereVars <- andereVars %>% 
+    left_join(y = Test) %>% 
+    rename("StDev" = "V1") %>% 
+    mutate(elasticiteit = longTerm / StDev) %>% 
+    filter(!is.na(elasticiteit))
