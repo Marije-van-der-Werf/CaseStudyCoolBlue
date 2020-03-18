@@ -1,17 +1,17 @@
 ###################################################################################################
-# Script voor create_modeldata na Coolblue gesprek voor Belgie
+# Script to create the data used in the model for Belgium
 ###################################################################################################
 
+#' Data and libraries
 library(lubridate)
 library(dplyr)
 library(mice)
-source("data_inlezen.R")
 source("dummies.R")
 
-#'We start with the data for BE only
-rm(Display2093, DisplayBEFR, DisplayNL, FeestdagenNL, OtherMarketing2093, OtherMarketingNL, Sales2093, SalesNL, Social2093, SocialBEFR, SocialNL)
+#' We start with the data for Belgium only
+rm(DisplayNL, HolidaysNL, OtherMarketingNL, SalesNL, SocialNL)
 
-#'We take the total display costs on one day
+#' We take the total display costs on one day for each precise strategy
 Display_per_combi <- DisplayBE %>% 
     mutate(D_Sa_De_Pr = ifelse(campaign_type %in% c("Sales", "Visibility") & device == "Desktop" & strategy == "Prospecting", cost, 0),
            D_Sa_De_Re = ifelse(campaign_type %in% c("Sales", "Visibility") & device == "Desktop" & strategy == "Retargeting", cost, 0),
@@ -47,7 +47,7 @@ sales_perday <- SalesBE[order(SalesBE$date), c("date", "sales")]
 #' Update modeldata: add display costs and sales  
 modelData <- left_join(sales_perday, Display_per_combi, by = "date")
 
-#' We take the total social costs on one day
+#' We take the total social costs on one day for each precise strategy
 Social_per_combi <- SocialBE %>% 
     mutate(S_Sa_Fa_Pr = ifelse(goal %in% c("Sales", "Visibility") & channel == "Facebook" & strategy == "Prospecting", cost, 0),
            S_Sa_Fa_Re = ifelse(goal %in% c("Sales", "Visibility") & channel == "Facebook" & strategy == "Retargeting", cost, 0),
@@ -69,7 +69,7 @@ Social_per_combi <- SocialBE %>%
 #' Update modeldata: add social costs
 modelData <- left_join(modelData, Social_per_combi, by = "date")
 
-#' Update modeldata: add search_ads costs and shopping_ads costs
+#' Update modeldata: add search_ads costs and shopping_ads costs, both corrected for the search volume
 adspervolume <- OtherMarketingBE$searchads_cost / OtherMarketingBE$search_volume
 shoppingpervolume <- OtherMarketingBE$shoppingads_cost / OtherMarketingBE$search_volume
 googleCosts <- data.frame(matrix(0,nrow(OtherMarketingBE),3))
@@ -79,6 +79,7 @@ googleCosts[,"adspervolume"] <- adspervolume
 googleCosts[, "shoppingpervolume"] <- shoppingpervolume
 modelData <- left_join(modelData, googleCosts, by = "date")
 
+#' Update modeldata: add delivered emails
 modelData <- left_join(modelData,OtherMarketingBE[,c("date", "delivered_emails")], by = "date")
 
 #' Update modeldata: add extrapolated competitor data
@@ -93,10 +94,10 @@ CompetitorBE <- CompetitorBE %>%
     group_by(date) %>% 
     summarise_all(sum)
 
-datums <- SalesBE %>% 
+dates <- SalesBE %>% 
     select(date)
 
-CompetitorNA <- datums %>% 
+CompetitorNA <- dates %>% 
     left_join(CompetitorBE, by = "date")
 
 set.seed(6)
@@ -112,18 +113,16 @@ CompetitorExtrapolated <- CompletedDatasellPhones %>%
 
 modelData <- left_join(modelData, CompetitorExtrapolated, by = "date")
 
+#' Convert the weather data
 KNMI_data <- read.table("etmgeg_380.txt", header = TRUE, sep = ",", dec = ".")
-
-#' Put dates from integer to date format and rename
-dates <- as.character(KNMI_data$YYYYMMDD)
+dates <- as.character(KNMI_data$YYYYMMDD) #' put dates from integer to date format and rename
 dates <- as.Date(dates, "%Y%m%d")
 KNMI_data[,2] <- dates
 KNMI_data %>% 
     mutate(YYYYMMDD = as.Date(YYYYMMDD))
 names(KNMI_data)[2] <- "date"
 
-#' Make sure temperature in full degrees (instead of 0.1)
-KNMI_data$TX <- KNMI_data$TX/10
+KNMI_data$TX <- KNMI_data$TX/10 #' make sure temperature in full degrees (instead of 0.1)
 KNMI_data$SQ <- KNMI_data$SQ/10
 KNMI_data$DR <- KNMI_data$DR/10
 
@@ -132,9 +131,10 @@ KNMIVA2017 <- KNMI_data %>%
            date <= "2020-01-05"
     )
 
-Neerslag = KNMIVA2017[, c('date', 'DR')]
+Rainfall = KNMIVA2017[, c('date', 'DR')]
 
-modelData <- left_join(modelData, Neerslag, by = "date")
+#' Updata modeldata: add rainfall
+modelData <- left_join(modelData, Rainfall, by = "date")
 
 #' Update modeldata: add price index dummies
 priceDummies <- data.frame(matrix(0,nrow(OtherMarketingBE),3))
@@ -195,20 +195,20 @@ SpillOver <- SpillOver %>%
 modelData <- modelData %>% 
     left_join(SpillOver, by = "date")
 
-#' Update modeldata: add weekdaydummy
+#' Update modeldata: add weekday dummies
 modelData <- left_join(modelData, WeekdayDummy, by = "date")
 
-#' Update modeldata: add month dummy
+#' Update modeldata: add month dummies
 modelData <- left_join(modelData, MonthDummy, by = "date")
 
-#' Update modeldata: add seasonal dummy
+#' Update modeldata: add seasonal dummies
 modelData <- left_join(modelData, SeasonalDummy, by = "date")
 
-#' Update modeldata: add partyDays dummy
+#' Update modeldata: add Holidays dummies
 modelData <- modelData %>% 
-    left_join(FeestdagenBE, by = "date")
-
-#' Remove data from environment that is now in one big table
-rm(sales_perday, Display_per_combi, Social_per_combi, priceDummies, CompetitorNA, CompetitorExtrapolated, ExtrapolerensellsPhones, ExtrapolerenNoPhones, CompletedDatasellPhones, CompletedDataNoPhones, SpillOver, SpillOverOther, SpillOverSocial, SpillOverDisplay)
+    left_join(HolidaysBE, by = "date")
 
 modelData[is.na(modelData)] <- 0
+
+#' Remove variables which will not be used anymore
+rm(list=setdiff(ls(), "modelData"))

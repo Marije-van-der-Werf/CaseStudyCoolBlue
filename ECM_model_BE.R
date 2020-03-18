@@ -1,5 +1,5 @@
 ###################################################################################################
-# Script for ECM with variables coming from lasso
+# Script for ECM with variables coming from lasso for Belgium
 ###################################################################################################
 
 #' Data and libraries
@@ -8,9 +8,9 @@ library(ecm)
 library(dplyr)
 library(matrixStats)
 library(tibble)
-source("overlapping_group_lasso.R")
+source("overlapping_group_lasso_BE.R")
 
-var_vec <- as.vector(res[["var"]][[81]])
+var_vec <- as.vector(res[["var"]][[18]])
 X_pred <- X[ ,c(unique(var_vec))]
 
 ols_model <- lm(log(y) ~ X_pred)
@@ -24,9 +24,9 @@ X_pred <- as.data.frame(X_pred)
 D <- as.data.frame(D)
 
 xtr <- X_pred %>% 
-    select(- V1)
+  select(- V1)
 xeq <- X_pred %>% 
-    select(- c(contains("DR"), colnames(D)))
+  select(- c(contains("DR"), colnames(D)))
 ECM_model <- ecm(log(y), xeq, xtr, includeIntercept=TRUE)
 summary(ECM_model)
 

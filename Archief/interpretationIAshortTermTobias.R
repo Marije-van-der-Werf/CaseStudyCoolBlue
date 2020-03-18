@@ -10,7 +10,7 @@ InteractionEffects <- VarCoef %>%
     filter(str_detect(VarCoef$vars, " "))
 SoloEffects <-  anti_join(VarCoef, InteractionEffects, by = "vars")
 
-Alles <- modelData %>% 
+Everything <- modelData %>% 
     left_join(y = as.data.frame(x))
 
 ElasticityNew <- matrix(NA, nrow(SoloEffects), 2)
@@ -21,7 +21,7 @@ for (i in 1:nrow(SoloEffects)){
         filter(str_detect(InteractionEffects$vars, thisVar))
     AllWeNeed <- list()
     AllWeNeed[["alpha"]] <- SoloEffects[SoloEffects$vars == thisVar, 2]
-    colthis <- Alles %>%
+    colthis <- Everything %>%
         select(thisVar) 
     positivethis <- colthis %>%
         filter(colthis > 0)
@@ -46,9 +46,9 @@ for (i in 1:nrow(SoloEffects)){
         for(j in IAVars){ 
             stdevIAVars <- SoloEffects[SoloEffects$vars == j, c(1,3)]
             AllWeNeed[["sigmaIA"]] <- c(AllWeNeed[["sigmaIA"]],stdevIAVars[,2])
-            mu2 <- mean(log(1+Alles[,j]))
+            mu2 <- mean(log(1+Everything[,j]))
             AllWeNeed[["muIA"]] <- c(AllWeNeed[["muIA"]], mu2)
-            A <- Alles %>% 
+            A <- Everything %>% 
                 select(sales, j) %>% 
                 rename("Testjee" = j) %>% 
                 filter(Testjee > 0)
@@ -57,7 +57,7 @@ for (i in 1:nrow(SoloEffects)){
         }
         
         for(k in interactionTerms[,1]){
-            col <- Alles %>%
+            col <- Everything %>%
                 select(k) 
             positive <- col %>%
                 filter(col > 0)
@@ -69,4 +69,36 @@ for (i in 1:nrow(SoloEffects)){
         ElasticityNew[i,1] <- thisVar
         ElasticityNew[i,2] <- ElasticityN
     }
+}
+
+#ElasticityNew <- as.data.frame(ElasticityNew)
+#names(ElasticityNew) <- c("vars", "elasticity")
+
+Variabelen <- ElasticityNew[,1]
+
+interpretation <- matrix(NA, nrow = length(Variabelen), ncol = 3)
+colnames(interpretation) <- c("vars", "stijgingCost", "stijgingSales")
+
+Everything <- modelData %>% 
+    left_join(y = as.data.frame(x))
+
+AllMeans <- c()
+
+for(i in 1:length(Variabelen)){
+    A <- Everything %>% 
+        select(sales, Variabelen[i]) %>% 
+        rename("This" = Variabelen[i]) %>% 
+        filter(This > 0)
+    
+    gem <- colMeans(A) # Baseren nu de stijging in sales op basis van de gemiddelde kosten (kosten moeten groter dan nul zijn) en de bijbehorende gemiddelde sales
+    AllMeans <- cbind(AllMeans, c(Variabelen[i], gem[2])) # Check for self 
+    if(0.1*gem[2] < 1){
+        j <- round(0.1*gem[2], digits = 2)
+    } else{
+        j <- round(0.1*gem[2])
+    }
+    
+    interpretation[i, 1] <- Variabelen[i]
+    interpretation[i, 2] <- j
+    interpretation[i, 3] <- round(as.double(ElasticityNew[i ,2]) * 0.1 * as.double(gem[1]), digits = 2)
 }

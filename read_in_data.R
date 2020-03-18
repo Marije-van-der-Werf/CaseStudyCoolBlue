@@ -1,5 +1,5 @@
 ###############################################################################
-# Script voor data inlezen
+# Script to read in the data
 ###############################################################################
 
 #' Data and libraries
@@ -22,8 +22,8 @@ Sales <- read.csv("Sales Data.csv", sep = ",", header = TRUE) %>%
 Social <- read.csv("Social Data.csv", sep = ",", header = TRUE) %>% 
     mutate(date = as.Date(date))
 
-#' Data opschonen
-#' Afronden
+#' Clean the data
+#' Round numbers
 Display <- Display %>% 
     mutate(cost = round(cost, 2))
 Social <- Social %>% 
@@ -42,7 +42,7 @@ OtherMarketing <- OtherMarketing %>%
            radio_cost = round(radio_cost, 2),
            ooh_cost = round(ooh_cost, 2))
 
-#' Filter op Mobiele telefoons (product_type_id == 2093)
+#' Filter on mobile phones (product_type_id == 2093)
 Display2093 <- Display %>% 
     filter(product_type_id == 2093)
 OtherMarketing2093 <- OtherMarketing %>% 
@@ -52,7 +52,7 @@ Sales2093 <- Sales %>%
 Social2093 <- Social %>% 
     filter(product_type_id == 2093)
 
-#' Nederland data
+#' Dutch data, only mobile phones
 DisplayNL <- Display2093 %>% 
     filter(subsidiary_id == 1)
 OtherMarketingNL <- OtherMarketing2093 %>% 
@@ -62,8 +62,7 @@ SalesNL <- Sales2093 %>%
 SocialNL <- Social2093 %>% 
     filter(subsidiaryid == 1)
 
-
-#' Belgie data
+#' Belgium data, only mobile phones
 DisplayBE <- Display2093 %>%
     filter(subsidiary_id == 3,
            language_id == 1)
@@ -75,9 +74,5 @@ SocialBE<- Social2093 %>%
     filter(subsidiaryid == 3,
            language_id == 1)
 
-
-#' Frans talige data
-DisplayBEFR <- DisplayBE %>%
-    filter(language_id == 4)
-SocialBEFR <- SocialBE %>% 
-    filter(language_id == 4)
+#' Remove variables which will not be used anymore
+rm(Display2093, OtherMarketing2093, Sales2093, Social2093)

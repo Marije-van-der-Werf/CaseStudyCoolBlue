@@ -1,4 +1,4 @@
-LASSOLISANNE <- function (X, y, var, group, lambda = NULL, weight = NULL, loss = c("ls", 
+LASSOCORRECTED <- function (X, y, var, group, lambda = NULL, weight = NULL, loss = c("ls", 
                                                                                    "logit"), intercept = TRUE, ...) 
 {
     library("MLGL")
@@ -42,9 +42,6 @@ LASSOLISANNE <- function (X, y, var, group, lambda = NULL, weight = NULL, loss =
     class(res2) = "MLGL"
     return(res2)
 }
-
-
-
 
 CHECKOVERLAP <- function (X, y, var, group, lambda = NULL, weight = NULL, intercept = TRUE) 
 {
